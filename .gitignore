@@ -1,0 +1,25 @@
+# Dependencies
+**/node_modules/
+
+# Build output
+**/dist/
+**/build/
+app/web-build/
+app/.expo/
+
+# Local editor and assistant settings
+**/.claude/
+
+# Environment files and secrets
+.env
+.env.*
+!.env.example
+
+# Local databases
+**/*.db
+**/*.sqlite
+**/*.sqlite3
+
+# Generated files
+*.tsbuildinfo
+.DS_Store

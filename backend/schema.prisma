@@ -1,0 +1,168 @@
+// Schema do banco — Mercadinho Ximenes
+// SQLite não suporta enums nativos; por isso role/status são String,
+// validadas com Zod na API (valores permitidos descritos em cada comentário).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite" // troque para "postgresql" em produção
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  nome      String
+  email     String   @unique
+  senhaHash String
+  role      String   @default("user") // "user" | "admin"
+  criadoEm  DateTime @default(now())
+
+  pedidos   Order[]
+  telefone  String?
+  enderecos Address[]
+  favoritos Favorite[]
+}
+
+model Category {
+  id        String @id @default(uuid())
+  nome      String @unique
+  descricao String @default("")
+  icone     String @default("pricetag-outline")
+  ordem     Int    @default(0)
+
+  produtos Product[]
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  nome         String
+  descricao    String   @default("")
+  // Valores monetários SEMPRE em centavos (Int) para evitar erro de ponto flutuante.
+  preco        Int
+  categoriaId  String
+  imagemUrl    String?
+  estoque      Int      @default(0)
+  status       String   @default("ativo") // "ativo" | "inativo"
+  unidade      String   @default("")
+  precoPromocional Int?
+  promocaoAte  DateTime?
+  destaqueSemana Boolean @default(false)
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
+
+  categoria Category    @relation(fields: [categoriaId], references: [id])
+  itens     OrderItem[]
+  favoritos Favorite[]
+
+  @@index([status, categoriaId])
+  @@index([nome])
+}
+
+model Order {
+  id         String   @id @default(uuid())
+  userId     String
+  total      Int      // centavos, calculado no servidor
+  status     String   @default("aguardando_pagamento") // "aguardando_pagamento" | "pago" | "cancelado"
+  pixPayload String   // código "Pix Copia e Cola" (BR Code)
+  criadoEm   DateTime @default(now())
+  tipoEntrega String @default("retirada")
+  subtotal Int @default(0)
+  taxaEntrega Int @default(0)
+  enderecoEntrega String?
+  statusEntrega String?
+  previsaoEntrega DateTime?
+  entregadorNome String?
+  entregadorTelefone String?
+
+  user  User        @relation(fields: [userId], references: [id])
+  itens OrderItem[]
+  eventos OrderEvent[]
+
+  @@index([userId, criadoEm])
+}
+
+model OrderItem {
+  id            String @id @default(uuid())
+  orderId       String
+  productId     String
+  quantidade    Int
+  precoUnitario Int    // centavos, "congelado" no momento da compra
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model OrderEvent {
+  id        String   @id @default(uuid())
+  orderId   String
+  status    String
+  observacao String  @default("")
+  criadoPor String
+  criadoEm  DateTime @default(now())
+
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, criadoEm])
+}
+
+model Address {
+  id          String   @id @default(uuid())
+  userId      String
+  apelido     String
+  cep         String
+  logradouro  String
+  numero      String
+  complemento String   @default("")
+  bairro      String
+  cidade      String
+  uf          String
+  referencia  String   @default("")
+  principal   Boolean  @default(false)
+  criadoEm    DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Favorite {
+  userId    String
+  productId String
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@id([userId, productId])
+  @@index([productId])
+}
+
+model Banner {
+  id        String   @id @default(uuid())
+  titulo    String
+  subtitulo String   @default("")
+  imagemUrl String?
+  cor       String   @default("#D21F32")
+  destino   String   @default("promocoes")
+  ordem     Int      @default(0)
+  ativo     Boolean  @default(true)
+  criadoEm  DateTime @default(now())
+}
+
+model Loja {
+  id              String @id @default("loja")
+  nome            String @default("Mercadinho Ximenes")
+  slogan          String @default("Preços baixos!")
+  telefone        String @default("")
+  whatsapp        String @default("")
+  email           String @default("")
+  endereco        String @default("")
+  horarios        String @default("")
+  quemSomos       String @default("")
+  termosPedido    String @default("")
+  avisoLegal      String @default("")
+  taxaEntrega     Int    @default(0)
+  freteGratisAcima Int   @default(0)
+  pedidoMinimo    Int    @default(0)
+}

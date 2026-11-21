@@ -1,0 +1,41 @@
+{
+  "info": {
+    "name": "Mercadinho Ximenes",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3333/api" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Autenticação",
+      "item": [
+        { "name": "Login", "request": { "method": "POST", "header": [{ "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"email\": \"cliente@mercadinho.com\",\n  \"senha\": \"Cliente@123\"\n}" }, "url": "{{baseUrl}}/auth/login" } },
+        { "name": "Perfil", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/auth/me" } }
+      ]
+    },
+    {
+      "name": "Produtos",
+      "item": [
+        { "name": "Lista com ofertas", "request": { "method": "GET", "url": "{{baseUrl}}/products?oferta=true&sort=desconto" } },
+        { "name": "Categorias", "request": { "method": "GET", "url": "{{baseUrl}}/categories" } },
+        { "name": "Banners", "request": { "method": "GET", "url": "{{baseUrl}}/banners" } }
+      ]
+    },
+    {
+      "name": "Endereços",
+      "item": [
+        { "name": "Listar", "request": { "method": "GET", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }], "url": "{{baseUrl}}/addresses" } },
+        { "name": "Consultar CEP", "request": { "method": "GET", "url": "{{baseUrl}}/cep/62000000" } }
+      ]
+    },
+    {
+      "name": "Pedidos",
+      "item": [
+        { "name": "Criar pedido", "request": { "method": "POST", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{\n  \"itens\": [{ \"produtoId\": \"SUBSTITUA\", \"quantidade\": 1 }],\n  \"tipoEntrega\": \"retirada\"\n}" }, "url": "{{baseUrl}}/orders" } },
+        { "name": "Avançar entrega", "request": { "method": "PATCH", "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }, { "key": "Content-Type", "value": "application/json" }], "body": { "mode": "raw", "raw": "{}" }, "url": "{{baseUrl}}/orders/SUBSTITUA/entrega" } }
+      ]
+    }
+  ]
+}
